@@ -7,12 +7,27 @@ namespace Otus_HomeWork_Dictionary
     public class OtusDictionary<TKey, TValue>
     {
         private int size = 5;
-        private Item<TKey, TValue>[] _items; 
+        private Item<TKey, TValue>[] _items;
+
         public OtusDictionary()
         {
             _items = new Item<TKey, TValue>[size];
         }
-        public IReadOnlyList<TKey> Keys => _items.Select(i => i.Key).ToList();
+        public IReadOnlyList<TKey> Keys => _items.Select(item => item.Key).ToList(); //?? 
+        //throw new NullReferenceException($"Словарь не содержит значение с ключом");
+        //public IReadOnlyList<TKey> Keys
+        //{
+        //    get
+        //    {
+        //        if (_items.Select(item => item.Key).ToList() != null)
+        //            return _items.Select(i => i.Key).ToList();
+        //        else
+        //        {
+        //            return null;
+        //        }
+        //    }
+
+        //}
 
         public TValue Get(TKey key)
         {
@@ -21,14 +36,14 @@ namespace Otus_HomeWork_Dictionary
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var item = _items.SingleOrDefault(i => i.Key.Equals(key)) ??
+            var item = _items.SingleOrDefault(item => item.Key.Equals(key)) ??
                 throw new ArgumentException($"Словарь не содержит значение с ключом {key}.", nameof(key));
 
             return item.Value;
         }
         public void Add(Item<TKey, TValue> item)
         {
-            var hash = GetHash(item.Key);
+            var hash = GetHash(item.Key, size);
 
             if (_items[hash] == null)
             {
@@ -69,43 +84,35 @@ namespace Otus_HomeWork_Dictionary
                 }
                 if (!placed)
                 {
-                    Array.Resize(ref _items, size * 2);
-                    Add(item); // ToDo пересчитать хэши для ранее вставленных элементов
-                    //Resize(ref _items, size * 2);
-                    //throw new Exception("Словарь заполнен");
+                    var newSize = size * 2;
+                    var newItems = new Item<TKey, TValue>[newSize];
+                    Array.Resize(ref _items, newSize);
+
+                    for (int i = 0; i < size; i++)
+                    {
+                        var newHash = NewHash(_items[i].Key, newItems.Length);
+                        if (newItems[newHash] == null)
+                        {
+                            newItems[newHash] = _items[i];
+                        }
+                    }
+                    _items = newItems;
+                    size = newSize;
+
+                    Add(item);
                 }
             }
         }
-        private int GetHash(TKey key)
+        private int GetHash(TKey key, int size)
         {
             return key.GetHashCode() % size;
         }
 
-        static void Resize(ref int[] arr, int add)
+        private int NewHash(TKey key, int newSize)
         {
-            int[] tempArray = new int[arr.Length];
-            int length;
+            var hash = GetHash(key, newSize);
 
-            for (int i = 0; i < arr.Length; i++)
-            {
-                tempArray[i] = arr[i];
-            }
-
-            length = arr.Length + add;
-
-            if (length >= 0)
-                arr = new int[length];
-            else
-                length = 0;
-            arr = new int[length];
-
-            length = tempArray.Length < arr.Length ? length = tempArray.Length : length = arr.Length;
-
-            for (int i = 0; i < length; i++)
-            {
-
-                arr[i] = tempArray[i];
-            }
+            return hash;
         }
     }
 }
