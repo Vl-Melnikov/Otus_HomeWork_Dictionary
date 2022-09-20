@@ -2,35 +2,29 @@
 
 namespace Otus_HomeWork_Dictionary
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var dict = new OtusDictionary<int, string>();
-            dict.Add(new Item<int, string>(1, "Один"));
-            dict.Add(new Item<int, string>(1, "Один"));
-            dict.Add(new Item<int, string>(2, "Два"));
-            dict.Add(new Item<int, string>(3, "Три"));
-            dict.Add(new Item<int, string>(4, "Четыре"));
-            dict.Add(new Item<int, string>(5, "Пять"));
-            //dict.Add(new Item<int, string>(6, "Шесть"));
-            //dict.Add(new Item<int, string>(7, "Семь"));
-            //dict.Add(new Item<int, string>(9, "Девять"));
+            var dict = new OtusDictionary();
+            var size = dict.Size();
+            Console.WriteLine($"Элементов в словаре: {dict.ElemetCount()} \nРазмер словаря: {size}");
 
-            ShowDict(dict, "OtusDictionary");
-            Console.WriteLine(dict.Get(8));
-            Console.ReadLine();
-        }
+            dict.Add(123, "test1");
+            dict.Add(234, "test2");
+            dict.Add(456, "test3");
+            dict.Add(678, "test4");
 
-        private static void ShowDict(OtusDictionary<int, string> dict, string title)
-        {
-            Console.WriteLine($"{title}: ");
-            foreach (var key in dict.Keys)
+            size = dict.Size();
+            Console.WriteLine($"Элементов в словаре: {dict.ElemetCount()} \nРазмер словаря: {size}");
+
+            for (int i = 0; i < size; i++)
             {
-                var value = dict.Get(key);
-                Console.WriteLine($"{key} - {value}");
+                if (dict[i] != null)
+                {
+                    Console.WriteLine(dict[i].ToString());
+                }
             }
-            Console.WriteLine();
         }
     }
 }

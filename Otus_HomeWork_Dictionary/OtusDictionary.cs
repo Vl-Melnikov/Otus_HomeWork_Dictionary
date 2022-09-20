@@ -1,118 +1,70 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Otus_HomeWork_Dictionary
 {
-    public class OtusDictionary<TKey, TValue>
+    internal partial class OtusDictionary
     {
-        private int size = 5;
-        private Item<TKey, TValue>[] _items;
+        private Node[] data;
+        private Node[] dataResize;
 
         public OtusDictionary()
         {
-            _items = new Item<TKey, TValue>[size];
+            data = new Node[32];
         }
-        public IReadOnlyList<TKey> Keys => _items.Select(item => item.Key).ToList(); //?? 
-        //throw new NullReferenceException($"Словарь не содержит значение с ключом");
-        //public IReadOnlyList<TKey> Keys
-        //{
-        //    get
-        //    {
-        //        if (_items.Select(item => item.Key).ToList() != null)
-        //            return _items.Select(i => i.Key).ToList();
-        //        else
-        //        {
-        //            return null;
-        //        }
-        //    }
 
-        //}
-
-        public TValue Get(TKey key)
+        public Node this[int index]
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            var item = _items.SingleOrDefault(item => item.Key.Equals(key)) ??
-                throw new ArgumentException($"Словарь не содержит значение с ключом {key}.", nameof(key));
-
-            return item.Value;
+            get => data[index];
+            set => data[index] = value;
         }
-        public void Add(Item<TKey, TValue> item)
+
+        public int Size()
         {
-            var hash = GetHash(item.Key, size);
+            return data.Length;
+        }
 
-            if (_items[hash] == null)
+        public int ElemetCount()
+        {
+            int count = 0;
+            foreach (var item in data)
             {
-                _items[hash] = item;
-            }
-            else
-            {
-                var placed = false;
-                for(var i = hash; i < size; i++)
+                if (item != null)
                 {
-                    if (_items[i] == null)
-                    {
-                        _items[i] = item;
-                        placed = true;
-                        break;
-                    }
-
-                    if (_items[i].Key.Equals(item.Key))
-                    {
-                        return;
-                    }
-                }
-                if (!placed)
-                {
-                    for (var i = 0; i < hash; i++)
-                    {
-                        if (_items[i] == null)
-                        {
-                            _items[i] = item;
-                            placed = true;
-                            break;
-                        }
-                        if (_items[i].Key.Equals(item.Key))
-                        {
-                            return;
-                        }
-                    }
-                }
-                if (!placed)
-                {
-                    var newSize = size * 2;
-                    var newItems = new Item<TKey, TValue>[newSize];
-                    Array.Resize(ref _items, newSize);
-
-                    for (int i = 0; i < size; i++)
-                    {
-                        var newHash = NewHash(_items[i].Key, newItems.Length);
-                        if (newItems[newHash] == null)
-                        {
-                            newItems[newHash] = _items[i];
-                        }
-                    }
-                    _items = newItems;
-                    size = newSize;
-
-                    Add(item);
+                    count++;
                 }
             }
-        }
-        private int GetHash(TKey key, int size)
-        {
-            return key.GetHashCode() % size;
+            return count;
         }
 
-        private int NewHash(TKey key, int newSize)
+        public void Add(int key, string value)
         {
-            var hash = GetHash(key, newSize);
+            var node = new Node(key, value);
+            var i = node.Key.GetHashCode() % data.Length;
 
-            return hash;
+            while (data[i] != null)
+            {
+                Resize();
+            }
+            data[i] = node;
+        }
+
+        private void Resize()
+        {
+            dataResize = new Node[data.Length * 2];
+            foreach (var item in data)
+            {
+                if (item != null)
+                {
+                    var i = item.GetHashCode() % dataResize.Length;
+                    if (dataResize[i] != null)
+                    {
+                        Resize();
+                    }
+                    dataResize[i] = item;
+                }
+            }
+            data = dataResize;
+            dataResize = null;
         }
     }
 }
